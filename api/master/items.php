@@ -4,10 +4,10 @@
     if (isset($_POST['action'])){
         switch ($_POST['action']){
             case 'insert':
-                insert($_POST['name'], $_POST['description'], $_POST['imageUrl'] ?? null);
+                insert($_POST['category_id'], $_POST['name'], $_POST['description'], $_POST['imageUrl'] ?? null);
                 break;
             case 'update':
-                update($_POST['id'], $_POST['name'], $_POST['description'], isset($_POST['imageUrl']) ? $_POST['imageUrl'] : null);
+                update($_POST['id'], $_POST['category_id'], $_POST['name'], $_POST['description'], isset($_POST['imageUrl']) ? $_POST['imageUrl'] : null);
                 break;
             case 'delete':
                 delete($_POST['id']);
@@ -27,7 +27,7 @@
     }
 
     function get(){
-        $sql = "SELECT * FROM categories";
+        $sql = "SELECT i.*,c.name as category_name FROM items i LEFT JOIN categories c ON i.category_id=c.id";
         $conn = createConnection();
         $result = $conn->query($sql);
         $datas = [];
@@ -42,7 +42,7 @@
 
     function detail($id){
         $conn = createConnection();
-        $stmt = $conn->prepare("SELECT * FROM categories WHERE id=?");
+        $stmt = $conn->prepare("SELECT * FROM items WHERE id=?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -50,19 +50,19 @@
         echo json_encode($result->fetch_assoc());
     }
 
-    function insert($name, $description, $imageUrl){
+    function insert($categoryId, $name, $description, $imageUrl){
         $conn = createConnection();
-        $stmt = $conn->prepare("INSERT INTO categories (`name`,`description`,`image_url`) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $name, $description, $imageUrl);
+        $stmt = $conn->prepare("INSERT INTO items (`category_id`, `name`,`description`,`image_url`) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("isss", $categoryId, $name, $description, $imageUrl);
         $result = $stmt->execute();
         $conn->close();
         echo $result;
     }
 
-    function update($id, $name, $description, $imageUrl){
+    function update($id, $categoryId, $name, $description, $imageUrl){
         $conn = createConnection();
-        $stmt = $conn->prepare("UPDATE categories SET `name`=?, `description`=?, `image_url`=? WHERE id=?");
-        $stmt->bind_param("sssi", $name, $description, $imageUrl, $id);
+        $stmt = $conn->prepare("UPDATE items SET `name`=?, `description`=?, `image_url`=?, `category_id`=? WHERE id=?");
+        $stmt->bind_param("sssii", $name, $description, $imageUrl, $categoryId, $id);
         $result = $stmt->execute();
         $conn->close();
         echo $result;
@@ -70,7 +70,7 @@
 
     function delete($id){
         $conn = createConnection();
-        $stmt = $conn->prepare("DELETE FROM categories WHERE id=?");
+        $stmt = $conn->prepare("DELETE FROM items WHERE id=?");
         $stmt->bind_param("i", $id);
         $result = $stmt->execute();
         $conn->close();

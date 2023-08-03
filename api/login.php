@@ -1,11 +1,12 @@
 <?php
-    include('database.php');
+    require_once('database.php');
     session_start();
 
     $email = $_POST['email'];
     $password = $_POST['password'];
     $hashedPassword = hash('sha256', $password);
 
+    $conn = createConnection();
     $stmt = $conn->prepare("SELECT id, `name`, email FROM users WHERE `email`=? AND `password`=?");
     $stmt->bind_param("ss", $email, $hashedPassword);
     $stmt->execute();

@@ -7,9 +7,9 @@ if (!isset($_SESSION["email"])) {
 ?>
 
 <div class="container col-lg-6 my-5 center">
-    <h2>Kategori Barang</h2>
+    <h2>Kategori</h2>
 
-    <button id="buttonAdd" class="btn btn-secondary mt-5">Tambah Barang</button>
+    <button id="buttonAdd" class="btn btn-secondary mt-5">Tambah</button>
     <div class="mt-5" id="divform">
         <form id="formku" enctype="multipart/form-data">
             <div class="mb-3 row">
@@ -38,7 +38,7 @@ if (!isset($_SESSION["email"])) {
             </div>
             <progress id="progressUpload"></progress>
             <button id="buttonCancel" type="button" class="btn btn-secondary">Cancel</button>
-            <button id="buttonSubmit" type="submit" class="btn btn-primary">Tambah Barang</button>
+            <button id="buttonSubmit" type="submit" class="btn btn-primary">Tambah</button>
         </form>
     </div>
     <div class="px-0 mt-5">
@@ -92,9 +92,10 @@ if (!isset($_SESSION["email"])) {
             }
         }, {
             targets: 4,
-            render: function(data) {
+            render: function(data, type, row) {
                 if (data) {
-                    return '<button onclick="editRow(' + data + ')" class="btn btn-outline-success btn-sm">Edit</button>';
+                    return '<button onclick="editRow(' + data + ')" class="btn btn-outline-success btn-sm">Edit</button> &nbsp;' +
+                        '<button onclick="deleteRow(' + data + ',\'' + row.name + '\')" class="btn btn-outline-danger btn-sm">Delete</button>';
                 } else {
                     return '';
                 }
@@ -108,10 +109,28 @@ if (!isset($_SESSION["email"])) {
         $("#progressUpload").hide();
     });
 
+    function deleteRow(id, name) {
+        let text = `Apakah anda yakin akan menghapus data ${name} ini?`;
+        if (confirm(text) == true) {
+            $.ajax({
+                type: "POST",
+                url: '/aplikasi-kasir/api/master/categories.php',
+                data: {
+                    action: 'delete',
+                    id: id
+                },
+                success: function(data) {
+                    tableku.ajax.reload();
+                },
+                dataType: 'json'
+            });
+        }
+    }
+
     function editRow(id) {
         $("#divform").show();
         $("#buttonAdd").hide();
-        $("#buttonSubmit").html('Edit Barang');
+        $("#buttonSubmit").html('Edit');
         $("#rowId").val(id);
         $("#divOldPhoto").show();
 
@@ -146,7 +165,7 @@ if (!isset($_SESSION["email"])) {
         $("#divform").hide();
         $("#formku").trigger('reset');
         $("#buttonAdd").show();
-        $("#buttonSubmit").html('Tambah Barang');
+        $("#buttonSubmit").html('Tambah');
     });
 
     $("#formku").submit(function() {
@@ -154,7 +173,7 @@ if (!isset($_SESSION["email"])) {
         let data = $(this).serialize();
         var action = 'insert';
 
-        if ($("#buttonSubmit").text() === "Edit Barang") {
+        if ($("#buttonSubmit").text() === "Edit") {
             action = 'update';
         }
         $.ajax({
@@ -165,7 +184,7 @@ if (!isset($_SESSION["email"])) {
                 tableku.ajax.reload();
                 $("#divform").hide();
                 $("#buttonAdd").show();
-
+                $("#buttonSubmit").html('Tambah');
                 $("#formku").trigger('reset');
             },
             dataType: 'json'
