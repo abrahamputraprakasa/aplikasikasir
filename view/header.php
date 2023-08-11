@@ -37,6 +37,15 @@ session_start();
                                 <li><a class="dropdown-item" href="/aplikasi-kasir/view/master/items.php">Barang-Barang</a></li>
                             </ul>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Transaksi
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="/aplikasi-kasir/view/transaction/transaction.php">Buat Transaksi</a></li>
+                                <li><a class="dropdown-item" href="#">Riwayat Transaksi</a></li>
+                            </ul>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="api/logout.php">Logout</a>
                         </li>

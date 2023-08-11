@@ -28,7 +28,13 @@ if (!isset($_SESSION["email"])) {
             <div class="mb-3 row">
                 <label class="col-sm-2 col-form-label">Description</label>
                 <div class="col-sm-10">
-                    <input type="text" class="form-control" name="description" id="description" placeholder="Description" autocomplete="off" required></input>
+                    <input type="text" class="form-control" name="description" id="description" placeholder="Description" autocomplete="off"></input>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label class="col-sm-2 col-form-label">Price</label>
+                <div class="col-sm-10">
+                    <input type="number" class="form-control" name="price" id="price" placeholder="Price" autocomplete="off" required></input>
                 </div>
             </div>
             <div class="mb-3 row">
@@ -49,12 +55,13 @@ if (!isset($_SESSION["email"])) {
         </form>
     </div>
     <div class="px-0 mt-5">
-        <table class="table table-striped-columns" id="tableCategory">
+        <table class="table table-striped-columns" id="tableKu">
             <thead>
                 <tr>
                     <th scope="col">ID</th>
                     <th scope="col">Category</th>
                     <th scope="col">Name</th>
+                    <th scope="col">Price</th>
                     <th scope="col">Description</th>
                     <th scope="col">Image</th>
                     <th scope="col">Action</th>
@@ -67,7 +74,7 @@ if (!isset($_SESSION["email"])) {
 </div>
 
 <script>
-    var tableku = $('#tableCategory').DataTable({
+    var tableku = $('#tableKu').DataTable({
         ajax: {
             url: '/aplikasi-kasir/api/master/items.php?action=get',
             dataType: 'json',
@@ -83,6 +90,9 @@ if (!isset($_SESSION["email"])) {
                 data: 'name'
             },
             {
+                data: 'price'
+            },
+            {
                 data: 'description'
             },
             {
@@ -93,25 +103,56 @@ if (!isset($_SESSION["email"])) {
             }
         ],
         columnDefs: [{
-            targets: 4,
-            render: function(data) {
-                if (data) {
-                    return '<img src="/aplikasi-kasir/' + data + '" style="height: 100px;">';
-                } else {
-                    return '';
+                targets: 3,
+                render: function(data) {
+                    if (data) {
+                        return parseInt(data).toLocaleString('id-ID');
+                    } else {
+                        return '';
+                    }
+                }
+            },
+            {
+                targets: 5,
+                render: function(data) {
+                    if (data) {
+                        return '<img src="/aplikasi-kasir/' + data + '" style="height: 100px;">';
+                    } else {
+                        return '';
+                    }
+                }
+            },
+            {
+                targets: 6,
+                render: function(data) {
+                    if (data) {
+                        return '<button onclick="editRow(' + data + ')" class="btn btn-outline-success btn-sm">Edit</button>' +
+                            '<button onclick="deleteRow(' + data + ',\'' + row.name + '\')" class="btn btn-outline-danger btn-sm">Delete</button>';
+                    } else {
+                        return '';
+                    }
                 }
             }
-        }, {
-            targets: 5,
-            render: function(data) {
-                if (data) {
-                    return '<button onclick="editRow(' + data + ')" class="btn btn-outline-success btn-sm">Edit</button>';
-                } else {
-                    return '';
-                }
-            }
-        }]
+        ]
     });
+
+    function deleteRow(id, name) {
+        let text = `Apakah anda yakin akan menghapus data ${name} ini?`;
+        if (confirm(text) == true) {
+            $.ajax({
+                type: "POST",
+                url: '/aplikasi-kasir/api/master/items.php',
+                data: {
+                    action: 'delete',
+                    id: id
+                },
+                success: function(data) {
+                    tableku.ajax.reload();
+                },
+                dataType: 'json'
+            });
+        }
+    }
 
     $(document).ready(function() {
         tableku.ajax.reload();
@@ -155,6 +196,8 @@ if (!isset($_SESSION["email"])) {
             success: function(data) {
                 $("#name").val(data.name);
                 $("#description").val(data.description);
+                $("#price").val(data.price);
+                $("#categories").val(data.category_id);
                 if (data.image_url) {
                     $("#filename").val(data.image_url);
                     $("#oldPhoto").attr('src', '/aplikasi-kasir/' + data.image_url);
