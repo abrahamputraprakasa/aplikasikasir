@@ -44,7 +44,7 @@ if (!isset($_SESSION["email"])) {
     <button id="buttonAdd" class="btn btn-secondary mt-5">Tambah</button>
     <div class="mt-5" id="divform">
         <form id="formku" enctype="multipart/form-data">
-            <div class="mb-3 row">
+            <div class="mb-3 row" id="divCategory">
                 <label class="col-sm-2 col-form-label">Category</label>
                 <div class="col-sm-10">
                     <select id="categories" class="form-select" name="category_id">
@@ -60,6 +60,12 @@ if (!isset($_SESSION["email"])) {
                         <option value="0"></option>
                     </select>
                     <input type="text" class="form-control" name="item" id="item" placeholder="Item Name" autocomplete="off" disabled></input>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label class="col-sm-2 col-form-label">Quantity</label>
+                <div class="col-sm-10">
+                    <input type="number" min="1" max="1000" class="form-control" name="quantity" id="quantity" placeholder="Item Quantity" autocomplete="off"></input>
                 </div>
             </div>
             <div class="mb-3 row">
@@ -80,9 +86,10 @@ if (!isset($_SESSION["email"])) {
                 <tr>
                     <th scope="col">#</th>
                     <th scope="col">Item Id</th>
-                    <th scope="col">Category</th>
                     <th scope="col">Name</th>
                     <th scope="col">Price</th>
+                    <th scope="col">Quantity</th>
+                    <th scope="col">Subtotal</th>
                     <th scope="col">Notes</th>
                     <th scope="col">Image</th>
                     <th scope="col">Action</th>
@@ -91,9 +98,14 @@ if (!isset($_SESSION["email"])) {
             <tbody>
             </tbody>
         </table>
-        <div class="text-center">
-            <button id="buttonSubmitTransaction" class="btn btn-success mt-3 px-5">Proses Transaksi</button>
+        <div class="text-center d-flex flex-column">
+            <div>
+                <input type="checkbox" id="cbPrintNota" />
+                <label for="cbPrintNota">Print Nota</label>
+            </div>
+            <button id="buttonSubmitTransaction" class="btn btn-success mt-3">Proses Transaksi</button>
         </div>
+        <iframe style="display: none" id="myPrintView"></iframe>
     </div>
 </div>
 
@@ -103,7 +115,7 @@ if (!isset($_SESSION["email"])) {
     var tableku = $('#tableKu').DataTable({
         paging: false,
         columnDefs: [{
-                targets: 4,
+                targets: 3,
                 render: function(data) {
                     if (data) {
                         return parseInt(data).toLocaleString('id-ID');
@@ -113,7 +125,17 @@ if (!isset($_SESSION["email"])) {
                 }
             },
             {
-                targets: 6,
+                targets: 5,
+                render: function(data) {
+                    if (data) {
+                        return parseInt(data).toLocaleString('id-ID');
+                    } else {
+                        return '';
+                    }
+                }
+            },
+            {
+                targets: 7,
                 render: function(data) {
                     if (data) {
                         return '<img src="/aplikasi-kasir/' + data + '" style="height: 50px;">';
@@ -123,9 +145,9 @@ if (!isset($_SESSION["email"])) {
                 }
             },
             {
-                targets: 7,
+                targets: 8,
                 render: function(data) {
-                    return '<button class="btn btn-outline-success btn-sm">Edit Notes</button>' +
+                    return '<button class="btn btn-outline-success btn-sm">Edit</button>' +
                         '<button class="btn btn-outline-danger btn-sm">Remove</button>';
                 }
             }
@@ -143,12 +165,11 @@ if (!isset($_SESSION["email"])) {
         console.log('rowId pas edit', id);
         console.log('dtRow pas edit', dtRow);
         $("#items").hide();
-        $("#categories").hide();
+        $("#divCategory").hide();
         $("#item").show();
-        $("#category").show();
-        $("#notes").val(dtRow[5]);
-        $("#item").val(dtRow[3]);
-        $("#category").val(dtRow[2]);
+        $("#notes").val(dtRow[6]);
+        $("#item").val(dtRow[2]);
+        $("#quantity").val(dtRow[4]);
     });
 
     tableku.on('click', '.btn-outline-danger', function(e) {
@@ -166,11 +187,13 @@ if (!isset($_SESSION["email"])) {
             var category_id = $(this).val();
             item = null;
             $("#notes").val("");
+            $("#quantity").val(1);
             getItems(category_id);
         });
         $("#items").on("change", function() {
             var itemId = $(this).val();
             $("#notes").val("");
+            $("#quantity").val(1);
             item = currentItems.find((item) => item.id == itemId);
         });
         $("#divform").hide();
@@ -241,15 +264,25 @@ if (!isset($_SESSION["email"])) {
         });
     }
 
+    function printNota() {
+        $("#myPrintView").attr('src', '/aplikasi-kasir/view/transaction/invoice.php');
+        $("#myPrintView").on("load", function() {
+            let iframe = document.getElementById("myPrintView").contentWindow;
+            iframe.focus();
+            iframe.print();
+        });
+    }
+
     function resetAllForm() {
         $("#divform").hide();
         $("#formku").trigger('reset');
         $("#buttonAdd").show();
         $("#buttonSubmit").html('Tambah');
         $("#items").show();
-        $("#categories").show();
+        $("#divCategory").show();
         $("#item").hide();
         $("#category").hide();
+        $("#tableNumber").val("");
     }
 
     $("#buttonSubmitTransaction").on('click', function() {
@@ -267,7 +300,6 @@ if (!isset($_SESSION["email"])) {
             console.log(element);
             items.push(element);
         });
-        const userId = 1;
         const tableNumber = $("#tableNumber").val();
         const notes = $("#notesTransaction").val();
         const paymentMethod = $("#paymentMethod").val();
@@ -287,7 +319,6 @@ if (!isset($_SESSION["email"])) {
         const submitData = {
             action: 'insert',
             items: items,
-            user_id: userId,
             table_number: tableNumber,
             notes: notes,
             payment_method: paymentMethod,
@@ -295,6 +326,7 @@ if (!isset($_SESSION["email"])) {
             invoice_number: invoiceNumber,
         };
 
+        const isPrintNotaChecked = $("#cbPrintNota").is(":checked");
         $.ajax({
             type: "POST",
             url: '/aplikasi-kasir/api/transaction/transaction.php',
@@ -303,6 +335,9 @@ if (!isset($_SESSION["email"])) {
                 tableku.clear().draw();
                 resetAllForm();
                 getInvoiceNumber();
+                if (isPrintNotaChecked) {
+                    printNota();
+                }
             },
             dataType: 'json'
         });
@@ -312,22 +347,36 @@ if (!isset($_SESSION["email"])) {
         $("#divform").show();
         $("#buttonAdd").hide();
         $("#divOldPhoto").hide();
+        $("#quantity").val(1);
     });
 
     $("#buttonCancel").on('click', function() {
         resetAllForm();
     });
 
+    function editRow(rowId, isAdd) {
+        var dtRow = tableku.rows(rowId).data()[0];
+        if (isAdd) {
+            dtRow[4] = parseInt(dtRow[4]) + parseInt($("#quantity").val());
+            var subtotal = parseInt(dtRow[4]) * dtRow[3];
+            dtRow[5] = subtotal;
+        } else {
+            dtRow[6] = $("#notes").val();
+            dtRow[4] = $("#quantity").val();
+            var subtotal = parseInt(dtRow[4]) * dtRow[3];
+            dtRow[5] = subtotal;
+        }
+        tableku.row(rowId).data(dtRow).draw();
+        if (!isAdd) {
+            resetAllForm();
+        }
+    }
+
     $("#formku").submit(function() {
         event.preventDefault();
         if ($("#buttonSubmit").text() === "Edit") {
             var id = $("#rowId").val();
-            console.log('rowId pas submit', id);
-            var dtRow = tableku.rows(id).data()[0];
-            console.log('dtRow pas submit', dtRow);
-            dtRow[5] = $("#notes").val();
-            tableku.row(id).data(dtRow).draw();
-            resetAllForm();
+            editRow(id, false);
         } else {
             if (!item) {
                 alert('Pilih item terlebih dahulu');
@@ -335,72 +384,35 @@ if (!isset($_SESSION["email"])) {
             }
 
             var notes = $("#notes").val();
-            var increment = tableku
-                .rows()
-                .data()
-                .length;
+
+            var isAdd = true;
+            tableku.rows().data().each((element, index) => {
+                if (element[6] == notes && element[1] == item.id) {
+                    editRow(index, true);
+                    isAdd = false;
+                }
+            });
+
+            if (!isAdd) {
+                return;
+            }
+
+            var quantity = $("#quantity").val();
+            var subtotal = parseInt(quantity) * item.price;
+            var increment = tableku.rows().data().length;
             var row = [
                 increment + 1,
                 item.id,
-                item.category_name,
                 item.name,
                 item.price,
+                quantity,
+                subtotal,
                 notes,
                 item.image_url,
                 increment,
             ];
-            tableku.row
-                .add(row)
-                .draw();
+            tableku.row.add(row).draw();
         }
-    });
-
-    $(':file').on('change', function() {
-        var file = this.files[0];
-        if (!file) {
-            return;
-        }
-        $("#progressUpload").show();
-        $.ajax({
-            // Your server script to process the upload
-            url: '/aplikasi-kasir/api/upload.php',
-            type: 'POST',
-
-            // Form data
-            data: new FormData($('form')[0]),
-
-            // Tell jQuery not to process data or worry about content-type
-            // You *must* include these options!
-            cache: false,
-            contentType: false,
-            processData: false,
-            dataType: 'json',
-            // Custom XMLHttpRequest
-            xhr: function() {
-                var myXhr = $.ajaxSettings.xhr();
-                if (myXhr.upload) {
-                    // For handling the progress of the upload
-                    myXhr.upload.addEventListener('progress', function(e) {
-                        if (e.lengthComputable) {
-                            $('progress').attr({
-                                value: e.loaded,
-                                max: e.total,
-                            });
-                        }
-                    }, false);
-                }
-                return myXhr;
-            },
-
-            success: function(data) {
-                if (data.filename) {
-                    $("#filename").val(data.filename);
-                } else {
-                    alert(data.message);
-                }
-                $("#progressUpload").hide();
-            },
-        });
     });
 </script>
 

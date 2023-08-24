@@ -1,6 +1,7 @@
 <?php
     require_once('../database.php');
 
+    session_start();
     if (isset($_POST['action'])){
         switch ($_POST['action']){
             case 'insert':
@@ -8,13 +9,13 @@
                 $totalPrice = 0;
                 $totalItems = 0;
                 foreach ($items as $item) {
-                    $totalPrice += $item[4];
+                    $totalPrice += $item[5];
                     $totalItems++;
                 }
-                $lastTransactionId = insert($_POST['user_id'], $_POST['table_number'], $_POST['notes'], $_POST['payment_method'], $_POST['payment_details'], $totalPrice, $totalItems, $_POST['invoice_number']);
+                $lastTransactionId = insert($_SESSION['user_id'], $_POST['table_number'], $_POST['notes'], $_POST['payment_method'], $_POST['payment_details'], $totalPrice, $totalItems, $_POST['invoice_number']);
                 $successDetail = [];
                 foreach ($items as $item) {
-                    $insertDetail = insertDetail($lastTransactionId, $item[1], 1, $item[5]);
+                    $insertDetail = insertDetail($lastTransactionId, $item[1], $item[4], $item[6]);
                     $successDetail[] = $insertDetail;
                 }
 

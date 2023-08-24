@@ -18,6 +18,7 @@
     if ($user) {
         // redirect ke halaman utama;
         $_SESSION["email"] = $email;
+        $_SESSION["user_id"] = $user['id'];
         $redirectTo = "../dashboard.php";
     } else {
         $_SESSION["error_message"] = "Email atau password salah";
