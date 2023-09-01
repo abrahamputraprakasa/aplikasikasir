@@ -1,9 +1,5 @@
 <?php
     require_once('../database.php');
-
-    // echo(json_encode($_GET));
-    // return;
-
     get($_GET);
 
     function get($params){
@@ -36,9 +32,6 @@
         $row = $result->fetch_assoc();
         $conn->close();
 
-        // echo json_encode($row);
-        // return;
-
         $countFiltered = (int) $row['count'];
         if ($search){
             $countFiltered = count($datas);
@@ -49,30 +42,6 @@
             "recordsFiltered" => $countFiltered,
             "data" => $datas
         ];
-//         {
-//     "draw": 1,
-//     "recordsTotal": 57,
-//     "recordsFiltered": 57,
-//     "data": [
-//         [
-//             "Angelica",
-//             "Ramos",
-//             "System Architect",
-//             "London",
-//             "9th Oct 09",
-//             "$2,875"
-//         ],
-//         [
-//             "Ashton",
-//             "Cox",
-//             "Technical Author",
-//             "San Francisco",
-//             "12th Jan 09",
-//             "$4,800"
-//         ],
-//         ...
-//     ]
-// }
         echo json_encode($datatableFormat);
     }
 

@@ -104,6 +104,7 @@ if (!isset($_SESSION["email"])) {
         ],
         columnDefs: [{
                 targets: 3,
+                className: 'dt-body-right',
                 render: function(data) {
                     if (data) {
                         return parseInt(data).toLocaleString('id-ID');

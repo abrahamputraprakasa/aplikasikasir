@@ -73,7 +73,12 @@ if (!isset($_SESSION["email"])) {
                 orderable: false
             },
             {
+                targets: 3,
+                className: 'dt-body-right',
+            },
+            {
                 targets: 4,
+                className: 'dt-body-right',
                 render: function(data) {
                     if (data) {
                         return parseInt(data).toLocaleString('id-ID');

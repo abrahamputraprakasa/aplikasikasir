@@ -49,6 +49,12 @@
             case 'getTransactionCountThisMonth':
                 getTransactionCountThisMonth();
                 break;
+            case 'thisMonthSelling':
+                getThisMonthSelling();
+                break;
+            case 'lastMonthSelling':
+                getLastMonthSelling();
+                break;
         }
     }
 
@@ -79,6 +85,24 @@
     function getTransactionCountThisMonth(){
         $conn = createConnection();
         $stmt = $conn->prepare("SELECT count(*) as count FROM transactions WHERE YEAR(created_at)=YEAR(now()) AND MONTH(created_at)=MONTH(now())");
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $conn->close();
+        echo json_encode($result->fetch_assoc());
+    }
+
+    function getThisMonthSelling(){
+        $conn = createConnection();
+        $stmt = $conn->prepare("SELECT SUM(total_price) as sum_total_price FROM transactions WHERE YEAR(created_at)=YEAR(now()) AND MONTH(created_at)=MONTH(now())");
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $conn->close();
+        echo json_encode($result->fetch_assoc());
+    }
+
+    function getLastMonthSelling(){
+        $conn = createConnection();
+        $stmt = $conn->prepare("SELECT SUM(total_price) as sum_total_price FROM transactions WHERE YEAR(created_at) = YEAR(CURRENT_DATE - INTERVAL 1 MONTH) AND MONTH(created_at) = MONTH(CURRENT_DATE - INTERVAL 1 MONTH)");
         $stmt->execute();
         $result = $stmt->get_result();
         $conn->close();
