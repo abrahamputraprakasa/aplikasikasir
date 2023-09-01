@@ -124,7 +124,7 @@ if (!isset($_SESSION["email"])) {
             },
             {
                 targets: 6,
-                render: function(data) {
+                render: function(data, type, row) {
                     if (data) {
                         return '<button onclick="editRow(' + data + ')" class="btn btn-outline-success btn-sm">Edit</button>' +
                             '<button onclick="deleteRow(' + data + ',\'' + row.name + '\')" class="btn btn-outline-danger btn-sm">Delete</button>';

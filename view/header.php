@@ -43,7 +43,7 @@ session_start();
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 <li><a class="dropdown-item" href="/aplikasi-kasir/view/transaction/transaction.php">Buat Transaksi</a></li>
-                                <li><a class="dropdown-item" href="#">Riwayat Transaksi</a></li>
+                                <li><a class="dropdown-item" href="/aplikasi-kasir/view/transaction/history.php">Riwayat Transaksi</a></li>
                             </ul>
                         </li>
                         <li class="nav-item">
